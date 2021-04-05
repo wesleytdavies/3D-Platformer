@@ -23,6 +23,9 @@ public class DamagePlayer : MonoBehaviour
         } else if (hit.gameObject.tag == "Disappearable")
         {
             hit.gameObject.GetComponent<DisappearingBlock>().isDisappearing = true;
+        } else if (hit.gameObject.tag == "Enemy")
+        {
+            SceneManager.LoadScene("SampleScene");
         }
     }
 }
