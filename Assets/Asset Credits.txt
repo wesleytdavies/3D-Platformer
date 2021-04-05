@@ -1,7 +1,5 @@
 Asset credits:
 
-Music: by Wesley Davies
-
 Player model/animation: https://assetstore.unity.com/packages/3d/animations/basic-motions-free-pack-154271
 
 Environmental assets: https://assetstore.unity.com/packages/3d/props/polygon-starter-pack-156819
