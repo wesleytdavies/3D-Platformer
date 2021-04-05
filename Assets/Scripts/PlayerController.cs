@@ -1,0 +1,113 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+//controls character movement. Repurposed from midterm project. Based on MVC Demo, Unity Documentation: https://docs.unity3d.com/ScriptReference/CharacterController.Move.html, and this thread: https://forum.unity.com/threads/third-person-controller-how-to-make-player-to-move-towards-the-direction-the-camera-is-facing.540671/
+public class PlayerController : MonoBehaviour
+{
+    private CharacterController controller;
+    private Transform cameraTransform;
+    private Vector3 moveDirection = Vector3.zero;
+    private bool canJump = false;
+    private bool isJumping = false;
+    private float jumpStartY; //the y-level of the player when they first start jumping
+    private float jumpHeight; //how high the player is relative to jumpStartY
+
+    [SerializeField] private Animator animator; //animations and model provided by: https://assetstore.unity.com/packages/3d/animations/basic-motions-free-pack-154271#description
+
+    [SerializeField] private float speed;
+    [SerializeField] private float jumpSpeed;
+    [SerializeField] private float maxJumpHeight;
+
+    private float gravity = 9.81f;
+
+    //inputs
+    private float xMove;
+    private float yMove;
+    private bool jumpStart;
+    private bool jumping;
+
+    public float turnSmoothTime = 0.2f;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+        cameraTransform = Camera.main.transform;
+    }
+
+    void Update()
+    {
+        //player inputs
+
+        xMove = Input.GetAxis("Horizontal");
+        yMove = Input.GetAxis("Vertical");
+
+        jumpStart = Input.GetButton("Jump");
+        jumping = Input.GetButton("Jump");
+
+        Vector3 viewDirection = cameraTransform.forward;
+
+        viewDirection.y = 0;
+        viewDirection.Normalize();
+
+        Quaternion newRot = Quaternion.LookRotation(viewDirection);
+
+        // player transform
+        transform.rotation = Quaternion.Slerp(transform.rotation, newRot, 5f * Time.deltaTime);
+
+        if (controller.isGrounded)
+        {
+            animator.SetBool("isJumping", false);
+            moveDirection = transform.right * xMove + transform.forward * yMove;
+            moveDirection *= speed;
+
+            if (yMove < 0)
+            {
+                animator.SetBool("isRunningBackwards", true);
+            }
+            else if (moveDirection != Vector3.zero)
+            {
+                animator.SetBool("isRunningBackwards", false);
+                animator.SetBool("isRunning", true);
+            }
+            else
+            {
+                animator.SetBool("isRunningBackwards", false);
+                animator.SetBool("isRunning", false);
+            }
+
+            canJump = true;
+            if (jumpStart)
+            {
+                animator.SetBool("isRunningBackwards", false);
+                animator.SetBool("isRunning", false);
+                animator.SetBool("isJumping", true);
+                isJumping = true;
+                jumpStartY = transform.position.y;
+            }
+        }
+        if (isJumping && canJump)
+        {
+            jumpHeight = transform.position.y - jumpStartY;
+            if (jumping && jumpHeight < maxJumpHeight)
+            {
+                moveDirection = transform.right * xMove + transform.forward * yMove;
+                moveDirection *= speed;
+                moveDirection.y = jumpSpeed;
+            }
+            else
+            {
+                isJumping = false;
+                canJump = false;
+            }
+        }
+
+        // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
+        // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
+        // as an acceleration (ms^-2)
+        moveDirection.y -= gravity * Time.deltaTime;
+
+        // Move the controller
+        controller.Move(moveDirection * Time.deltaTime);
+    }
+}
