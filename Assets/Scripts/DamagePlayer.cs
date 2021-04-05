@@ -20,6 +20,9 @@ public class DamagePlayer : MonoBehaviour
         if (hit.gameObject.tag == "Hurtable")
         {
             SceneManager.LoadScene("SampleScene");
+        } else if (hit.gameObject.tag == "Disappearable")
+        {
+            hit.gameObject.GetComponent<DisappearingBlock>().isDisappearing = true;
         }
     }
 }
